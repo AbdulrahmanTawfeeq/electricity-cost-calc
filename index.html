@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>حاسبة استهلاك الكهرباء - المشروع الوطني للكهرباء</title>
+    <meta name="description" content="حاسبة ذكية لحساب فاتورة الكهرباء حسب النظام الجديد لمشروع رووناكي الوطني">
+    <meta name="keywords" content="حاسبة كهرباء, مشروع رووناكي, الكهرباء العراق, حساب فاتورة الكهرباء">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">⚡</div>
+            <div class="header-text">
+                <h1>حاسبة استهلاك الكهرباء</h1>
+                <p>لتوفير الكهرباء على مدار الساعة</p>
+            </div>
+            <div class="header-actions">
+                <button class="header-btn" onclick="showInfoModal()">أسعار</button>
+                <button class="header-btn" onclick="showDevicesModal()">أجهزة (<span id="headerDeviceCount">0</span>)</button>
+                <button class="header-btn" onclick="showDocumentationModal()">توثيق</button>
+                <button class="header-btn" onclick="showHelpModal()">مساعدة</button>
+                <button class="header-btn" onclick="showDisclaimerModal()">تنبيه</button>
+                <button class="header-btn" id="desktopFullscreenBtn" onclick="enterFullscreen()">⛶ ملء الشاشة</button>
+                <button class="header-btn" onclick="clearAll()" style="background: rgba(239, 68, 68, 0.8);">مسح الكل</button>
+                <button class="header-btn exit-fullscreen-btn" id="exitFullscreenBtn" onclick="exitFullscreen()" style="display: none;">خروج من ملء الشاشة</button>
+            </div>
+            <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <div class="sidebar-overlay" onclick="closeSidebar()"></div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3>القائمة</h3>
+            <button class="sidebar-close" onclick="closeSidebar()">&times;</button>
+        </div>
+        <div class="sidebar-content">
+            <div class="sidebar-item" onclick="showInfoModal(); closeSidebar();">
+                <span class="sidebar-icon">💰</span>
+                <span>شرائح الأسعار</span>
+            </div>
+            <div class="sidebar-item" onclick="showDevicesModal(); closeSidebar();">
+                <span class="sidebar-icon">📱</span>
+                <span>الأجهزة المضافة (<span id="sidebarDeviceCount">0</span>)</span>
+            </div>
+            <div class="sidebar-item" onclick="showDocumentationModal(); closeSidebar();">
+                <span class="sidebar-icon">📚</span>
+                <span>التوثيق التقني</span>
+            </div>
+            <div class="sidebar-item" onclick="showHelpModal(); closeSidebar();">
+                <span class="sidebar-icon">❓</span>
+                <span>طريقة الاستخدام</span>
+            </div>
+            <div class="sidebar-item" onclick="showDisclaimerModal(); closeSidebar();">
+                <span class="sidebar-icon">⚠️</span>
+                <span>تنبيه مهم</span>
+            </div>
+            <div class="sidebar-item" id="mobileFullscreenBtn" onclick="enterFullscreen(); closeSidebar();">
+                <span class="sidebar-icon">⛶</span>
+                <span>ملء الشاشة</span>
+            </div>
+            <div class="sidebar-item" onclick="clearAll(); closeSidebar();">
+                <span class="sidebar-icon">🗑️</span>
+                <span>مسح جميع الأجهزة</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Devices Modal -->
+    <div id="devicesModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('devicesModal')">&times;</button>
+            <h3 style="margin-bottom: 0.75rem; font-size: 1rem;">الأجهزة المضافة (<span id="modalDeviceCount">0</span>)</h3>
+            
+            <div id="modalDevicesList" style="max-height: 400px; overflow-y: auto;">
+                <div class="empty-state" style="padding: 2rem;">
+                    <div class="empty-state-icon">📱</div>
+                    <p>لا توجد أجهزة مضافة</p>
+                </div>
+            </div>
+            
+            <button class="btn-secondary" onclick="clearAll(); closeModal('devicesModal')" style="width: 100%; margin-top: 1rem;">
+                مسح جميع الأجهزة
+            </button>
+        </div>
+    </div>
+
+    <!-- Documentation Modal -->
+    <div id="documentationModal" class="modal">
+        <div class="modal-content" style="max-width: 90vw;">
+            <button class="modal-close" onclick="closeModal('documentationModal')">&times;</button>
+            <h3 style="margin-bottom: 1rem; font-size: 1.1rem; color: #2563eb;">📚 التوثيق التقني</h3>
+            
+            <div style="font-size: 0.8rem; color: #374151; line-height: 1.6; max-height: 60vh; overflow-y: auto;">
+                <h4 style="color: #2563eb; margin: 1rem 0 0.5rem; font-size: 0.9rem;">⚡ قوانين الكهرباء الأساسية:</h4>
+                <div style="background: #f8fafc; padding: 0.75rem; border-radius: 6px; margin: 0.5rem 0;">
+                    <p><strong>الطاقة = الجهد × التيار × الزمن</strong></p>
+                    <p style="margin: 0.25rem 0;">الطاقة (كيلو واط ساعة) = الجهد (فولت) × التيار (أمبير) × الزمن (ساعة) ÷ 1000</p>
+                    <p style="color: #2563eb;">مثال: 220 فولت × 5 أمبير × 10 ساعات ÷ 1000 = 11 كيلو واط ساعة</p>
+                </div>
+
+                <h4 style="color: #2563eb; margin: 1rem 0 0.5rem; font-size: 0.9rem;">🔄 التحويلات المستخدمة:</h4>
+                <div style="background: #f0f9ff; padding: 0.75rem; border-radius: 6px; margin: 0.5rem 0;">
+                    <p><strong>من الأمبير إلى كيلو واط ساعة:</strong></p>
+                    <p>الطاقة اليومية = الأمبير × 220 فولت × ساعات التشغيل ÷ 1000</p>
+                    <p><strong>من الواط إلى كيلو واط ساعة:</strong></p>
+                    <p>الطاقة اليومية = الواط × ساعات التشغيل ÷ 1000</p>
+                    <p style="color: #2563eb;">الطاقة الشهرية = الطاقة اليومية × 30 يوم</p>
+                </div>
+
+                <h4 style="color: #2563eb; margin: 1rem 0 0.5rem; font-size: 0.9rem;">🔧 أنواع التشغيل:</h4>
+                
+                <div style="background: #f0fdf4; padding: 0.75rem; border-radius: 6px; margin: 0.5rem 0;">
+                    <p><strong>التشغيل المستمر:</strong></p>
+                    <p>للأجهزة التي تعمل لساعات متواصلة يومياً</p>
+                    <p style="color: #059669;">أمثلة: التلفزيون، المصابيح، الكمبيوتر</p>
+                    <p><strong>الحساب:</strong> الطاقة = القدرة × ساعات التشغيل</p>
+                </div>
+
+                <div style="background: #fffbeb; padding: 0.75rem; border-radius: 6px; margin: 0.5rem 0;">
+                    <p><strong>التشغيل الدوري:</strong></p>
+                    <p>للأجهزة التي تعمل وتتوقف تلقائياً حسب الحساسات</p>
+                    <p style="color: #d97706;">أمثلة: الثلاجة، المكيف، المجمدة</p>
+                    <p><strong>الحساب:</strong> نسبة التشغيل = دقائق التشغيل ÷ (دقائق التشغيل + دقائق الراحة)</p>
+                    <p>الساعات الفعلية = 24 × نسبة التشغيل</p>
+                </div>
+
+                <div style="background: #fef2f2; padding: 0.75rem; border-radius: 6px; margin: 0.5rem 0;">
+                    <p><strong>التشغيل المتقطع:</strong></p>
+                    <p>للأجهزة التي تعمل كل عدة أيام لفترة محددة</p>
+                    <p style="color: #dc2626;">أمثلة: موتور الماء، سخان الماء، مضخة البئر</p>
+                    <p><strong>الحساب:</strong> الساعات اليومية = ساعات التشغيل ÷ عدد الأيام</p>
+                </div>
+
+                <h4 style="color: #2563eb; margin: 1rem 0 0.5rem; font-size: 0.9rem;">📊 أمثلة حسابية:</h4>
+                
+                <div style="background: #f8fafc; padding: 0.75rem; border-radius: 6px; margin: 0.5rem 0; border-right: 3px solid #2563eb;">
+                    <p><strong>مثال 1 - مكيف الهواء (دوري):</strong></p>
+                    <p>• القراءة: 8 أمبير</p>
+                    <p>• التشغيل: 40 دقيقة، الراحة: 20 دقيقة</p>
+                    <p>• نسبة التشغيل = 40 ÷ (40+20) = 66.7%</p>
+                    <p>• الساعات الفعلية = 24 × 0.667 = 16 ساعة</p>
+                    <p>• الطاقة اليومية = 8 × 220 × 16 ÷ 1000 = 28.16 كيلو واط ساعة</p>
+                    <p style="color: #2563eb;">• الطاقة الشهرية = 28.16 × 30 = 845 كيلو واط ساعة</p>
+                </div>
+
+                <div style="background: #f8fafc; padding: 0.75rem; border-radius: 6px; margin: 0.5rem 0; border-right: 3px solid #059669;">
+                    <p><strong>مثال 2 - موتور الماء (متقطع):</strong></p>
+                    <p>• القراءة: 12 أمبير</p>
+                    <p>• يعمل 3 ساعات كل 4 أيام</p>
+                    <p>• الساعات اليومية = 3 ÷ 4 = 0.75 ساعة</p>
+                    <p>• الطاقة اليومية = 12 × 220 × 0.75 ÷ 1000 = 1.98 كيلو واط ساعة</p>
+                    <p style="color: #059669;">• الطاقة الشهرية = 1.98 × 30 = 59.4 كيلو واط ساعة</p>
+                </div>
+
+                <h4 style="color: #2563eb; margin: 1rem 0 0.5rem; font-size: 0.9rem;">📏 معايير دقة الحساب:</h4>
+                <ul style="margin-right: 1rem; color: #374151;">
+                    <li>جهد الشبكة الافتراضي: 220 فولت</li>
+                    <li>الشهر الافتراضي: 30 يوم</li>
+                    <li>معامل القدرة المفترض: 0.9-1.0</li>
+                    <li>دقة القياس: ±5% للأجهزة المنزلية</li>
+                </ul>
+
+                <div style="background: #fef3c7; padding: 0.75rem; border-radius: 6px; margin: 1rem 0; border: 1px solid #fde68a;">
+                    <p style="color: #92400e; font-weight: 500;">⚠️ ملاحظات مهمة:</p>
+                    <p style="color: #92400e;">• النتائج تقريبية وقد تختلف حسب ظروف التشغيل الفعلية</p>
+                    <p style="color: #92400e;">• استهلاك الأجهزة القديمة قد يكون أعلى من المحسوب</p>
+                    <p style="color: #92400e;">• تذبذب الجهد يؤثر على دقة القياس</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="helpModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('helpModal')">&times;</button>
+            <h3 style="margin-bottom: 0.75rem; font-size: 1rem;">كيفية استخدام الحاسبة</h3>
+            
+            <div style="font-size: 0.8rem; color: #374151; line-height: 1.6;">
+                <h4 style="color: #2563eb; margin: 1rem 0 0.5rem;">📊 طريقة الإدخال:</h4>
+                <p><strong>قياس الأمبير:</strong> استخدم جهاز قياس التيار وسجل القراءة عند تشغيل الجهاز</p>
+                <p><strong>استهلاك الواط:</strong> اقرأ الرقم المكتوب على ملصق الجهاز (مثل: 1200W)</p>
+                
+                <h4 style="color: #2563eb; margin: 1rem 0 0.5rem;">⚙️ أنواع التشغيل:</h4>
+                <p><strong>مستمر:</strong> للأجهزة التي تعمل لساعات متواصلة (تلفزيون، مصابيح)</p>
+                <p><strong>دوري:</strong> للأجهزة التي تعمل وتتوقف تلقائياً (ثلاجة، مكيف)</p>
+                <p><strong>متقطع:</strong> للأجهزة التي تعمل كل عدة أيام (موتور الماء، سخان)</p>
+                
+                <h4 style="color: #2563eb; margin: 1rem 0 0.5rem;">💡 أمثلة:</h4>
+                <p>• <strong>مكيف 2 طن:</strong> 8 أمبير، مستمر، 10 ساعات يومياً</p>
+                <p>• <strong>ثلاجة:</strong> 3 أمبير، دوري، 30 دقيقة تشغيل / 20 دقيقة راحة</p>
+                <p>• <strong>موتور الماء:</strong> 12 أمبير، متقطع، 3 ساعات كل 4 أيام</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="mobile-container">
+            <!-- Results Section -->
+            <div class="results-section" id="resultsSection">
+                <h2 class="section-title">النتائج</h2>
+                <div id="resultsContent">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📊</div>
+                        <p>أضف أجهزتك لرؤية النتائج</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile Splitter -->
+            <div class="mobile-splitter" id="mobileSplitter"></div>
+
+            <!-- Calculator Section -->
+            <div class="calculator-section" id="calculatorSection">
+            <h2 class="section-title">إضافة الأجهزة</h2>
+
+            <form onsubmit="addDevice(event)">
+                <div class="form-group">
+                    <label class="form-label">اسم الجهاز</label>
+                    <input type="text" id="deviceName" class="form-input" placeholder="مثال: مكيف الهواء">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">طريقة الإدخال</label>
+                    <div class="method-toggle">
+                        <button type="button" class="toggle-btn active" onclick="selectMethod('amps')">
+                            📊 أمبير
+                        </button>
+                        <button type="button" class="toggle-btn" onclick="selectMethod('watts')">
+                            ⚡ واط
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group" id="ampsInput">
+                    <label class="form-label">قراءة الأمبير</label>
+                    <input type="number" id="deviceAmps" class="form-input" placeholder="8.5" step="0.1" min="0">
+                </div>
+
+                <div class="form-group" id="wattsInput" style="display: none;">
+                    <label class="form-label">استهلاك الواط</label>
+                    <input type="number" id="deviceWatts" class="form-input" placeholder="1200" step="1" min="0">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">نوع التشغيل</label>
+                    <div class="operation-toggle">
+                        <button type="button" class="toggle-btn active" onclick="selectOperation('continuous')">
+                            مستمر
+                        </button>
+                        <button type="button" class="toggle-btn" onclick="selectOperation('cyclic')">
+                            دوري
+                        </button>
+                        <button type="button" class="toggle-btn" onclick="selectOperation('interval')">
+                            متقطع
+                        </button>
+                    </div>
+                </div>
+
+                <div id="continuousInputs">
+                    <div class="form-group">
+                        <label class="form-label">ساعات التشغيل يومياً</label>
+                        <input type="number" id="deviceHours" class="form-input" placeholder="6" step="0.5" min="0" max="24">
+                    </div>
+                </div>
+
+                <div id="cyclicInputs" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">دورة التشغيل (دقائق)</label>
+                        <div class="cycle-inputs">
+                            <input type="number" id="workMinutes" class="form-input" placeholder="30" min="1" oninput="updateCyclePreview()">
+                            <span>تشغيل</span>
+                            <input type="number" id="restMinutes" class="form-input" placeholder="20" min="1" oninput="updateCyclePreview()">
+                            <span>راحة</span>
+                        </div>
+                        <div id="cyclePreview" class="tip" style="display: none; margin-top: 0.375rem;"></div>
+                    </div>
+                </div>
+
+                <div id="intervalInputs" style="display: none;">
+                    <div class="special-operation">
+                        <div class="form-group">
+                            <label class="form-label">ساعات التشغيل في كل مرة</label>
+                            <input type="number" id="intervalHours" class="form-input" placeholder="3" step="0.5" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">يعمل كل كم يوم؟</label>
+                            <input type="number" id="intervalDays" class="form-input" placeholder="4" min="1" max="30" oninput="updateIntervalPreview()">
+                        </div>
+                        <div id="intervalPreview" class="tip" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary">إضافة الجهاز</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Info Modal -->
+    <div id="infoModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('infoModal')">&times;</button>
+            <h3 style="margin-bottom: 0.75rem; font-size: 1rem;">شرائح تسعير مشروع رووناكي مثالا</h3>
+            
+            <table class="pricing-table">
+                <thead>
+                    <tr>
+                        <th>الشريحة</th>
+                        <th>الاستهلاك (كيلو واط ساعة)</th>
+                        <th>السعر (دينار)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>الأولى</td><td>1 - 400</td><td>72</td></tr>
+                    <tr><td>الثانية</td><td>401 - 800</td><td>108</td></tr>
+                    <tr><td>الثالثة</td><td>801 - 1200</td><td>175</td></tr>
+                    <tr><td>الرابعة</td><td>1201 - 1600</td><td>265</td></tr>
+                    <tr><td>الخامسة</td><td>أكثر من 1600</td><td>350</td></tr>
+                </tbody>
+            </table>
+
+            <div class="tip">
+                💡 مثال: استهلاك 500 كيلو واط ساعة:<br>
+                (400 × 72) + (100 × 108) = 39,600 دينار
+            </div>
+        </div>
+    </div>
+
+    <!-- Disclaimer Modal -->
+    <div id="disclaimerModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('disclaimerModal')">&times;</button>
+            <h3 style="margin-bottom: 0.75rem; font-size: 1rem; color: #dc2626;">تنبيه مهم</h3>
+            
+            <div style="background: #fef2f2; border: 1px solid #fecaca; padding: 1rem; border-radius: 6px; margin-bottom: 1rem;">
+                <p style="font-size: 0.8rem; line-height: 1.6; color: #991b1b;">
+                    <strong>هذه الحاسبة تقريبية وليست رسمية معتمدة من المشروع الوطني</strong><br><br>
+                    
+                    ✅ تعتمد على المعلومات والمعادلات المنشورة من قبل مشروع رووناكي<br>
+                    ✅ مفيدة لتقدير التكلفة قبل نهاية الشهر<br>
+                    ✅ تساعد في التخطيط لاستهلاك الكهرباء<br><br>
+                    
+                    ⚠️ للحسابات الرسمية، راجع فاتورة المشروع الوطني<br>
+                    ⚠️ قد تختلف النتائج الفعلية حسب ظروف التشغيل
+                </p>
+            </div>
+            
+            <button class="btn-primary" onclick="closeModal('disclaimerModal')" style="width: 100%;">
+                فهمت
+            </button>
+        </div>
+    </div>
+</body>
+<script src="script.js"></script>
+</html>
